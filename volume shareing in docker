@@ -1,0 +1,56 @@
+###Here's a script that creates Docker containers named con1, con2, etc., based on an Ubuntu image, creates an image using a Dockerfile, and shares a volume between the containers:
+
+#!/bin/bash
+
+# Set Docker Hub ID
+docker_hub_id="evilpagal"
+
+# Function to build Docker image from Dockerfile
+build_image() {
+    local tag="$1"
+    echo "Building Docker image $tag..."
+    docker build -t $tag .
+    if [ $? -ne 0 ]; then
+        echo "Failed to build Docker image $tag."
+        exit 1
+    fi
+}
+
+# Function to create Docker containers and share volume between them
+create_containers() {
+    local container_names=("con1" "con2" "con3")  # Add more container names as needed
+    local image_tag="$1"
+    local host_path="/host/path"
+    local container_path="/container/path"
+
+    echo "Creating Docker containers based on image $image_tag..."
+
+    for container_name in "${container_names[@]}"; do
+        echo "Creating container $container_name..."
+        docker run -d --name $container_name -v $host_path:$container_path $image_tag
+        if [ $? -ne 0 ]; then
+            echo "Failed to create container $container_name."
+            exit 1
+        fi
+    done
+
+    echo "Docker containers created successfully."
+}
+
+# Check if Docker is installed
+if ! command -v docker &> /dev/null; then
+    echo "Docker is not installed. Please install Docker and try again."
+    exit 1
+fi
+
+# Check if Dockerfile exists
+if [ ! -f Dockerfile ]; then
+    echo "Dockerfile not found. Please create a Dockerfile and try again."
+    exit 1
+fi
+
+# Build Docker image from Dockerfile
+build_image "$docker_hub_id/ubuntu_image"
+
+# Create Docker containers and share volume between them
+create_containers "$docker_hub_id/ubuntu_image"
