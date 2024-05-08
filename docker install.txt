@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Install Docker
+amazon-linux-extras install docker -y
+systemctl enable docker
+systemctl start docker
+
+# Login to Docker Hub (replace 'your_password' with your actual password)
+echo "Logging into Docker Hub..."
+docker login -u evilpagal -p your_password
+
+# Build Ubuntu image (replace 'latest' with desired Ubuntu version if needed)
+echo "Building Ubuntu image..."
+docker build -t evilpagal/ubuntu:latest --build-arg UBUNTU_VERSION=latest .
+
+# Push Ubuntu image to Docker Hub
+echo "Pushing image to Docker Hub..."
+docker push evilpagal/ubuntu:latest
+
+# Pull latest Ubuntu image from Docker Hub
+echo "Pulling latest Ubuntu image..."
+docker pull ubuntu:latest
+
+# Create container based on Ubuntu image
+echo "Creating container..."
+docker run -dt --name my-ubuntu ubuntu:latest
+
+# Install packages within the container
+echo "Installing packages in the container..."
+docker exec -it my-ubuntu apk add --no-cache apache2 git wget iputils pingus
+
+# Print container ID for reference
+echo "Container ID: $(docker ps -q -l)"
+
+echo "Script completed!"
