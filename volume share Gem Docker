@@ -1,0 +1,33 @@
+###Here's a script for creating multiple containers from a Ubuntu image, naming them with a pattern, sharing a volume, and leveraging
+
+#!/bin/bash
+
+# Set the number of containers (modify as needed)
+NUM_CONTAINERS=2
+
+# Base image name
+IMAGE_NAME="evilpagal/ubuntu:latest"
+
+# Shared volume name
+SHARED_VOLUME="shared-data"
+
+# Function to create a container with a numbered name
+create_container() {
+  local container_name="con$1"
+  echo "Creating container: $container_name..."
+  docker run -dt \
+    --name "$container_name" \
+    -v $SHARED_VOLUME:/shared \
+    $IMAGE_NAME
+}
+
+# Create the shared volume (if it doesn't exist)
+docker volume create $SHARED_VOLUME >/dev/null 2>&1 || true
+
+# Create containers
+for i in $(seq 1 $NUM_CONTAINERS); do
+  create_container $i
+done
+
+echo "Created $NUM_CONTAINERS containers with shared volume '$SHARED_VOLUME'."
+
