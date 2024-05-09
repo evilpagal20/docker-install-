@@ -1,0 +1,53 @@
+script that sets up three Docker containers on an Ubuntu OS, with web pages named test1, test2, and test3. Each container will have Apache installed and will be able to ping each other. Additionally, port 80 will be forwarded to port 6969 on each container
+
+#!/bin/bash
+
+# Install Docker
+install_docker() {
+    echo "Installing Docker..."
+    sudo apt update
+    sudo apt install -y docker.io
+    sudo systemctl start docker
+    sudo systemctl enable docker
+    echo "Docker installed successfully."
+}
+
+# Pull Ubuntu Docker image
+pull_ubuntu_image() {
+    echo "Pulling Ubuntu Docker image..."
+    sudo docker pull ubuntu
+    echo "Ubuntu Docker image pulled successfully."
+}
+
+# Create Docker containers
+create_containers() {
+    echo "Creating Docker containers..."
+    for i in {1..3}; do
+        container_name="test$i"
+        sudo docker run -d --name $container_name -p 6969:80 ubuntu /bin/bash -c "apt-get update && apt-get install -y apache2 iputils-ping && apache2ctl start && tail -f /dev/null"
+        if [ $? -ne 0 ]; then
+            echo "Failed to create Docker container $container_name."
+            exit 1
+        fi
+    done
+    echo "Docker containers created successfully."
+}
+
+# Configure container network to allow ping
+configure_network() {
+    echo "Configuring container network to allow ping..."
+    for i in {1..3}; do
+        container_name="test$i"
+        sudo docker network connect bridge $container_name
+    done
+    echo "Container network configured successfully."
+}
+
+main() {
+    install_docker
+    pull_ubuntu_image
+    create_containers
+    configure_network
+}
+
+main
